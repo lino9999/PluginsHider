@@ -1,0 +1,10 @@
+Plugin Originale/
+Plugin originale/
+.work/
+.analysis/
+target/
+dist/
+.git/
+.idea/
+.vscode/
+*.log

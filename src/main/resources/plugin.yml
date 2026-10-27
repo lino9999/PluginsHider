@@ -1,0 +1,38 @@
+name: PluginsHider
+version: 1.0.0
+main: io.github.lino9999.pluginshider.PluginsHiderPlugin
+author: Lino
+api-version: '1.21'
+folia-supported: true
+depend:
+  - packetevents
+softdepend:
+  - LuckPerms
+commands:
+  pluginshider:
+    description: Primary management command for PluginsHider
+    aliases:
+      - phider
+      - ph
+      - plh
+    permission: pluginshider.admin
+    usage: /pluginshider <reload|check|sync|brand|help>
+permissions:
+  pluginshider.admin:
+    description: Full administrative control over PluginsHider
+    default: op
+  pluginshider.bypass.commands:
+    description: Bypass command execution restrictions
+    default: false
+  pluginshider.bypass.tab:
+    description: Bypass tab completion filtering
+    default: false
+  pluginshider.bypass.plugins:
+    description: Bypass /plugins and /pl cloaking
+    default: false
+  pluginshider.bypass.channels:
+    description: Bypass plugin channel leak protection
+    default: false
+  pluginshider.bypass.spam:
+    description: Bypass command spam rate limiter
+    default: false

@@ -1,0 +1,122 @@
+# ==============================================================================
+# PluginsHider - Comprehensive Server Security & Privacy Configuration
+# Author: Lino
+# Compatible with Spigot, Paper, Purpur, and Folia (1.21.11 - 26.3+)
+# ==============================================================================
+
+settings:
+  locale: "en"
+  debug: false
+  case-insensitive-commands: true
+
+brand-spoofing:
+  enabled: true
+  server-brand: "&8[&bPlugins&3Hider&8] &7Protected"
+
+channel-protection:
+  enabled: true
+  allowed-channels:
+    - "minecraft:brand"
+    - "bungeecord:main"
+    - "velocity:main"
+    - "geyserutils:main"
+
+plugin-command-shield:
+  enabled: true
+  blocked-commands:
+    - "/plugins"
+    - "/pl"
+    - "/bukkit:plugins"
+    - "/bukkit:pl"
+    - "/version"
+    - "/ver"
+    - "/bukkit:version"
+    - "/bukkit:ver"
+    - "/about"
+    - "/bukkit:about"
+    - "/help"
+    - "/bukkit:help"
+    - "/?"
+    - "/bukkit:?"
+  custom-response: "&8[&bPluginsHider&8] &cCommand access denied."
+
+rate-limiting:
+  enabled: true
+  window-seconds: 2
+  max-commands-per-window: 30
+  action: KICK
+  kick-message: "&cExcessive command activity detected. Connection terminated."
+
+operator-security:
+  enabled: false
+  allowed-operators:
+    - "Lino"
+  auto-deop-unauthorized: true
+  kick-unauthorized: true
+  unauthorized-kick-message: "&cUnauthorized operator privilege detected."
+  block-op-command-message: "&cYou are not authorized to assign operator privileges."
+  sweep-interval-seconds: 5
+
+groups:
+  default:
+    priority: 0
+    mode: WHITELIST
+    blocked-message: "&cUnknown command. Type \"/help\" for help."
+    commands:
+      - "spawn"
+      - "tpa"
+      - "tpaccept"
+      - "tpdeny"
+      - "home"
+      - "sethome"
+      - "msg"
+      - "r"
+      - "pay"
+      - "balance"
+      - "bal"
+      - "warp"
+      - "list:utility-commands"
+    tab-complete:
+      - "spawn"
+      - "tpa"
+      - "tpaccept"
+      - "tpdeny"
+      - "home"
+      - "sethome"
+      - "msg"
+      - "r"
+      - "pay"
+      - "balance"
+      - "bal"
+      - "warp"
+      - "list:utility-commands"
+    inherited-groups: []
+
+  vip:
+    priority: 10
+    mode: WHITELIST
+    blocked-message: "&cUnknown command. Type \"/help\" for help."
+    commands:
+      - "fly"
+      - "feed"
+      - "heal"
+      - "workbench"
+      - "craft"
+    tab-complete:
+      - "fly"
+      - "feed"
+      - "heal"
+      - "workbench"
+      - "craft"
+    inherited-groups:
+      - "default"
+
+  admin:
+    priority: 100
+    mode: BLACKLIST
+    blocked-message: "&cAdministrative safety lock: This command is restricted."
+    commands:
+      - "stop"
+      - "restart"
+    tab-complete: []
+    inherited-groups: []

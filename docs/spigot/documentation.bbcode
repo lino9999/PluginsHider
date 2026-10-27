@@ -1,0 +1,234 @@
+[CENTER]
+[SIZE=6][COLOR=#00d2ff][B]📖 PluginsHider Documentation & Setup Guide[/B][/COLOR][/SIZE]
+[SIZE=3][COLOR=#a0aec0]Author: [B]Lino[/B] • Platform: Spigot / Paper / Purpur / Folia (1.21.11 - 26.3+)[/COLOR][/SIZE]
+[HR][/HR]
+[/CENTER]
+
+[SIZE=5][COLOR=#00d2ff]1. Installation & Requirements[/COLOR][/SIZE]
+[LIST=1]
+[*] Verify your server runs [B]Java 21[/B] or newer.
+[*] Download and place [URL='https://github.com/retrooper/packetevents'][B]PacketEvents 2.x[/B][/URL] into your server's [FONT=Courier New]plugins/[/FONT] folder.
+[*] (Optional) Install [B]LuckPerms[/B] for dynamic reactive permission tree syncing.
+[*] Drop [B]PluginsHider-1.0.0.jar[/B] into your [FONT=Courier New]plugins/[/FONT] directory.
+[*] Restart your server or run [FONT=Courier New]/phider reload[/FONT] after modifying configuration files.
+[/LIST]
+
+[HR][/HR]
+
+[SIZE=5][COLOR=#00d2ff]2. Default Configuration Breakdown (config.yml)[/COLOR][/SIZE]
+Below is the full annotated configuration file:
+
+[CODE=yaml]
+# ==============================================================================
+# PluginsHider - Comprehensive Server Security & Privacy Configuration
+# Author: Lino
+# Compatible with Spigot, Paper, Purpur, and Folia (1.21.11 - 26.3+)
+# ==============================================================================
+
+settings:
+  locale: "en"
+  debug: false
+  case-insensitive-commands: true
+
+brand-spoofing:
+  # Rewrites the outgoing server brand in the F3 debug screen.
+  enabled: true
+  server-brand: "&8[&bPlugins&3Hider&8] &7Protected"
+
+channel-protection:
+  # Prevents hacked clients from snooping registered channels via minecraft:register.
+  enabled: true
+  allowed-channels:
+    - "minecraft:brand"
+    - "bungeecord:main"
+    - "velocity:main"
+    - "geyserutils:main"
+
+plugin-command-shield:
+  # Intercepts direct plugin inspection commands.
+  enabled: true
+  blocked-commands:
+    - "/plugins"
+    - "/pl"
+    - "/bukkit:plugins"
+    - "/bukkit:pl"
+    - "/version"
+    - "/ver"
+    - "/bukkit:version"
+    - "/bukkit:ver"
+    - "/about"
+    - "/bukkit:about"
+    - "/help"
+    - "/bukkit:help"
+    - "/?"
+    - "/bukkit:?"
+  custom-response: "&8[&bPluginsHider&8] &cCommand access denied."
+
+rate-limiting:
+  # Anti-flood rate limiter for player commands.
+  enabled: true
+  window-seconds: 2
+  max-commands-per-window: 30
+  action: KICK # KICK or BLOCK
+  kick-message: "&cExcessive command activity detected. Connection terminated."
+
+operator-security:
+  # Strict operator whitelist and unauthorized de-op enforcement.
+  enabled: false
+  allowed-operators:
+    - "Lino"
+    - "00000000-0000-0000-0000-000000000000" # UUIDs are also supported
+  auto-deop-unauthorized: true
+  kick-unauthorized: true
+  unauthorized-kick-message: "&cUnauthorized operator privilege detected."
+  block-op-command-message: "&cYou are not authorized to assign operator privileges."
+  sweep-interval-seconds: 5
+
+groups:
+  default:
+    priority: 0
+    mode: WHITELIST # WHITELIST or BLACKLIST
+    blocked-message: "&cUnknown command. Type \"/help\" for help."
+    commands:
+      - "spawn"
+      - "tpa"
+      - "tpaccept"
+      - "tpdeny"
+      - "home"
+      - "sethome"
+      - "msg"
+      - "r"
+      - "pay"
+      - "balance"
+      - "bal"
+      - "warp"
+      - "list:utility-commands"
+    tab-complete:
+      - "spawn"
+      - "tpa"
+      - "tpaccept"
+      - "tpdeny"
+      - "home"
+      - "sethome"
+      - "msg"
+      - "r"
+      - "pay"
+      - "balance"
+      - "bal"
+      - "warp"
+      - "list:utility-commands"
+    inherited-groups: []
+
+  vip:
+    priority: 10
+    mode: WHITELIST
+    blocked-message: "&cUnknown command. Type \"/help\" for help."
+    commands:
+      - "fly"
+      - "feed"
+      - "heal"
+      - "workbench"
+      - "craft"
+    tab-complete:
+      - "fly"
+      - "feed"
+      - "heal"
+      - "workbench"
+      - "craft"
+    inherited-groups:
+      - "default"
+
+  admin:
+    priority: 100
+    mode: BLACKLIST
+    blocked-message: "&cAdministrative safety lock: This command is restricted."
+    commands:
+      - "stop"
+      - "restart"
+    tab-complete: []
+    inherited-groups: []
+[/CODE]
+
+[HR][/HR]
+
+[SIZE=5][COLOR=#00d2ff]3. Rule Syntax & Capabilities[/COLOR][/SIZE]
+
+[B]A. Exact & Subcommand Matching[/B]
+[LIST]
+[*] [FONT=Courier New]spawn[/FONT] -> Allows or blocks [FONT=Courier New]/spawn[/FONT] and any arguments passed to it.
+[*] [FONT=Courier New]warp shop[/FONT] -> Matches [FONT=Courier New]/warp shop[/FONT] specifically.
+[/LIST]
+
+[B]B. Negation Rules (!)[/B]
+Use exclamation marks to carve out exceptions from inherited or whitelist groups:
+[CODE=yaml]
+commands:
+  - "warp"
+  - "!warp admin_vault"
+[/CODE]
+In the example above, players can use [FONT=Courier New]/warp[/FONT] for any destination except [FONT=Courier New]admin_vault[/FONT]!
+
+[B]C. Regular Expressions (regex:)[/B]
+Prefix any rule with [FONT=Courier New]regex:[/FONT] for regex patterns:
+[CODE=yaml]
+commands:
+  - "regex:^msg [a-zA-Z0-9_]+ (hello|hi)$"
+[/CODE]
+
+[B]D. Modular Command Lists (list:<filename>)[/B]
+Place reusable lists in [FONT=Courier New]plugins/PluginsHider/lists/[/FONT]!
+For instance, [FONT=Courier New]lists/utility-commands.yml[/FONT]:
+[CODE=yaml]
+utility-commands:
+  - "ping"
+  - "discord"
+  - "vote"
+[/CODE]
+Then reference it in any group with [FONT=Courier New]list:utility-commands[/FONT]! Circular dependencies are automatically prevented.
+
+[HR][/HR]
+
+[SIZE=5][COLOR=#00d2ff]4. Permission Nodes[/COLOR][/SIZE]
+
+[TABLE]
+[TR]
+[TH][COLOR=#00d2ff]Permission Node[/COLOR][/TH]
+[TH][COLOR=#00d2ff]Default[/COLOR][/TH]
+[TH][COLOR=#00d2ff]Functionality[/COLOR][/TH]
+[/TR]
+[TR]
+[TD][FONT=Courier New]pluginshider.admin[/FONT][/TD]
+[TD]op[/TD]
+[TD]Grants full access to [FONT=Courier New]/pluginshider[/FONT] administrative tools.[/TD]
+[/TR]
+[TR]
+[TD][FONT=Courier New]pluginshider.group.<name>[/FONT][/TD]
+[TD]false[/TD]
+[TD]Assigns the player to the specified group (e.g. [FONT=Courier New]pluginshider.group.vip[/FONT]).[/TD]
+[/TR]
+[TR]
+[TD][FONT=Courier New]pluginshider.bypass.commands[/FONT][/TD]
+[TD]false[/TD]
+[TD]Bypasses all command execution blocking restrictions.[/TD]
+[/TR]
+[TR]
+[TD][FONT=Courier New]pluginshider.bypass.tab[/FONT][/TD]
+[TD]false[/TD]
+[TD]Bypasses tab completion filtering; sees all commands.[/TD]
+[/TR]
+[TR]
+[TD][FONT=Courier New]pluginshider.bypass.plugins[/FONT][/TD]
+[TD]false[/TD]
+[TD]Allows executing [FONT=Courier New]/plugins[/FONT] to view real server plugins.[/TD]
+[/TR]
+[TR]
+[TD][FONT=Courier New]pluginshider.bypass.channels[/FONT][/TD]
+[TD]false[/TD]
+[TD]Bypasses plugin messaging channel hiding.[/TD]
+[/TR]
+[TR]
+[TD][FONT=Courier New]pluginshider.bypass.spam[/FONT][/TD]
+[TD]false[/TD]
+[TD]Bypasses command spam rate limiter.[/TD]
+[/TR]
+[/TABLE]

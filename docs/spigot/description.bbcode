@@ -1,0 +1,103 @@
+[CENTER]
+[SIZE=6][COLOR=#00d2ff][B]🛡️ PluginsHider[/B][/COLOR][/SIZE]
+[SIZE=4][COLOR=#a0aec0]Next-Generation Command Shielding, Tab-Complete Cloaking & Anti-Recon Suite[/COLOR][/SIZE]
+
+[SIZE=3][COLOR=#38ef7d][B]Compatible with Spigot • Paper • Purpur • Folia (1.21.11 - 26.3+)[/B][/COLOR][/SIZE]
+[COLOR=#718096]Authored with passion by [B][COLOR=#00d2ff]Lino[/COLOR][/B][/COLOR]
+
+[HR][/HR]
+[/CENTER]
+
+[SIZE=5][COLOR=#00d2ff]✦ Why PluginsHider?[/COLOR][/SIZE]
+Every public Minecraft server suffers from reconnaissance attempts. Hacked clients and malicious players constantly probe commands like [FONT=Courier New]/plugins[/FONT], [FONT=Courier New]/version[/FONT], [FONT=Courier New]/help[/FONT], sniff registered plugin messaging channels, inspect tab completions, and attempt privilege escalation via [FONT=Courier New]/op[/FONT].
+
+[B]PluginsHider[/B] puts an end to server intelligence leaks. Built from scratch on modern Java 21 and the high-performance PacketEvents 2.x engine, PluginsHider completely isolates what players see, autocomplete, and execute—with zero performance overhead and full multi-threaded Folia support.
+
+[HR][/HR]
+
+[SIZE=5][COLOR=#00d2ff]✦ Core Features[/COLOR][/SIZE]
+
+[LIST]
+[*] [B][COLOR=#38ef7d]Complete Plugin & Command Shielding[/COLOR][/B]
+Instantly blocks and customizes responses for [FONT=Courier New]/plugins[/FONT], [FONT=Courier New]/pl[/FONT], [FONT=Courier New]/version[/FONT], [FONT=Courier New]/ver[/FONT], [FONT=Courier New]/about[/FONT], [FONT=Courier New]/help[/FONT], [FONT=Courier New]/?[/FONT], and all plugin-namespace prefixes ([FONT=Courier New]bukkit:*[/FONT], [FONT=Courier New]minecraft:*[/FONT]). Return a customizable message or stay completely silent.
+
+[*] [B][COLOR=#38ef7d]Packet-Level Tab-Completion Cloaking (Brigadier / DeclareCommands)[/COLOR][/B]
+Filters the outgoing [FONT=Courier New]DECLARE_COMMANDS[/FONT] packet at wire speed. Players only see the commands their group permits. Hidden commands simply do not exist in the client's suggestion list!
+
+[*] [B][COLOR=#38ef7d]F3 Server Brand Spoofing[/COLOR][/B]
+Prevent reconnaissance through the F3 debug screen. Replace vanilla or Paper server brand tags ([FONT=Courier New]minecraft:brand[/FONT]) with your server network name or custom stealth branding.
+
+[*] [B][COLOR=#38ef7d]Plugin Messaging Channel Leak Prevention[/COLOR][/B]
+Hacked clients listen for registered plugin channels ([FONT=Courier New]minecraft:register[/FONT]) to automatically detect installed mods. PluginsHider intercepts and cleans channel registrations, exposing only whitelisted channels (such as BungeeCord, Velocity, or Geyser).
+
+[*] [B][COLOR=#38ef7d]Advanced Group ACL & Inheritance[/COLOR][/B]
+Assign groups by permission ([FONT=Courier New]pluginshider.group.<name>[/FONT]) with numerical priority. Groups support both [B]WHITELIST[/B] and [B]BLACKLIST[/B] modes, rule inheritance, negation ([FONT=Courier New]!warp vault[/FONT]), regex matching, and modular list files.
+
+[*] [B][COLOR=#38ef7d]Command Flood & Spam Limiter[/COLOR][/B]
+Built-in sliding-window rate limiter prevents automated command flooding or DoS attempts. Automatically blocks commands or kicks violators if thresholds are breached.
+
+[*] [B][COLOR=#38ef7d]Strict Operator (OP) Lockdown[/COLOR][/B]
+Defends against privilege escalation attacks. Enforces a strict allowed-operators list (names & UUIDs), blocks in-game and console [FONT=Courier New]/op[/FONT] attempts, and runs periodic security sweeps that immediately de-op and kick unauthorized operators.
+
+[*] [B][COLOR=#38ef7d]Reactive LuckPerms Integration[/COLOR][/B]
+Subscribes directly to LuckPerms events. Whenever a player's group or permissions change, their client command tree is instantly synchronized on the fly without requiring a reconnect.
+
+[*] [B][COLOR=#38ef7d]Folia & Paper Native Multi-Threading[/COLOR][/B]
+Engineered with native Folia region-scheduler awareness and thread-safe data structures. Ready for massive networks and high player counts.
+[/LIST]
+
+[HR][/HR]
+
+[SIZE=5][COLOR=#00d2ff]✦ Commands & Permissions[/COLOR][/SIZE]
+
+[B]Primary Command:[/B] [COLOR=#38ef7d][FONT=Courier New]/pluginshider[/FONT][/COLOR] (Aliases: [COLOR=#38ef7d][FONT=Courier New]/phider[/FONT][/COLOR], [COLOR=#38ef7d][FONT=Courier New]/ph[/FONT][/COLOR], [COLOR=#38ef7d][FONT=Courier New]/plh[/FONT][/COLOR])
+
+[TABLE]
+[TR]
+[TH][COLOR=#00d2ff]Command[/COLOR][/TH]
+[TH][COLOR=#00d2ff]Permission[/COLOR][/TH]
+[TH][COLOR=#00d2ff]Description[/COLOR][/TH]
+[/TR]
+[TR]
+[TD][FONT=Courier New]/phider reload[/FONT][/TD]
+[TD][FONT=Courier New]pluginshider.admin[/FONT][/TD]
+[TD]Reloads all configuration files, ACL groups, and custom lists.[/TD]
+[/TR]
+[TR]
+[TD][FONT=Courier New]/phider check <player>[/FONT][/TD]
+[TD][FONT=Courier New]pluginshider.admin[/FONT][/TD]
+[TD]Inspects the active ACL group and rule count for a specific player.[/TD]
+[/TR]
+[TR]
+[TD][FONT=Courier New]/phider sync [player][/FONT][/TD]
+[TD][FONT=Courier New]pluginshider.admin[/FONT][/TD]
+[TD]Forces an immediate client command tree synchronization.[/TD]
+[/TR]
+[TR]
+[TD][FONT=Courier New]/phider brand[/FONT][/TD]
+[TD][FONT=Courier New]pluginshider.admin[/FONT][/TD]
+[TD]Displays active F3 brand spoofing configuration.[/TD]
+[/TR]
+[TR]
+[TD][FONT=Courier New]/phider help[/FONT][/TD]
+[TD][FONT=Courier New]pluginshider.admin[/FONT][/TD]
+[TD]Shows all available subcommands and usage.[/TD]
+[/TR]
+[/TABLE]
+
+[B]Bypass Permissions:[/B]
+[LIST]
+[*] [FONT=Courier New]pluginshider.bypass.commands[/FONT] - Bypass command execution blocking.
+[*] [FONT=Courier New]pluginshider.bypass.tab[/FONT] - View all commands in tab-completion.
+[*] [FONT=Courier New]pluginshider.bypass.plugins[/FONT] - View real plugins when typing [FONT=Courier New]/plugins[/FONT].
+[*] [FONT=Courier New]pluginshider.bypass.channels[/FONT] - Bypass plugin message channel filtering.
+[*] [FONT=Courier New]pluginshider.bypass.spam[/FONT] - Bypass command spam rate limiter.
+[*] [FONT=Courier New]pluginshider.group.<name>[/FONT] - Assigns a player to a defined ACL group.
+[/LIST]
+
+[HR][/HR]
+
+[CENTER]
+[SIZE=4][COLOR=#00d2ff]🚀 Download now & secure your Minecraft server today![/COLOR][/SIZE]
+[COLOR=#a0aec0]Check the Documentation tab for in-depth YAML configuration guides.[/COLOR]
+[/CENTER]
