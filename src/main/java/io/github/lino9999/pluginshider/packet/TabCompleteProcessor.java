@@ -5,6 +5,7 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerTa
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerTabComplete.CommandMatch;
 import io.github.lino9999.pluginshider.acl.AccessGroup;
 import io.github.lino9999.pluginshider.config.PluginSettings;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
@@ -14,6 +15,10 @@ public final class TabCompleteProcessor {
     private TabCompleteProcessor() {}
 
     public static void filterTabComplete(PacketSendEvent event, Player player, PluginSettings settings) {
+        if (player == null && event.getUser() != null && event.getUser().getUUID() != null) {
+            player = Bukkit.getPlayer(event.getUser().getUUID());
+        }
+
         if (player == null || player.hasPermission("pluginshider.bypass.tab")) {
             return;
         }
@@ -27,6 +32,7 @@ public final class TabCompleteProcessor {
 
         List<CommandMatch> filtered = new ArrayList<>();
         boolean bypassPlugins = player.hasPermission("pluginshider.bypass.plugins");
+        boolean hideColon = settings.isHideColonCommands();
 
         for (CommandMatch match : matches) {
             String text = match.getText();
@@ -43,6 +49,10 @@ public final class TabCompleteProcessor {
                 if (settings.getPluginShieldSettings().isBlocked("/" + clean)) {
                     continue;
                 }
+            }
+
+            if (hideColon && clean.contains(":") && !group.allowsRootTab(clean)) {
+                continue;
             }
 
             if (group.allowsRootTab(clean) || group.allowsSubcommandTab(clean)) {

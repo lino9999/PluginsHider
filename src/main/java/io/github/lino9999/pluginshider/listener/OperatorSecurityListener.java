@@ -2,6 +2,7 @@ package io.github.lino9999.pluginshider.listener;
 
 import io.github.lino9999.pluginshider.PluginsHiderPlugin;
 import io.github.lino9999.pluginshider.config.OperatorSettings;
+import io.github.lino9999.pluginshider.util.SchedulerUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
@@ -10,6 +11,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.server.ServerCommandEvent;
 
 import java.util.Locale;
@@ -32,11 +34,26 @@ public final class OperatorSecurityListener implements Listener {
         UUID uuid = event.getUniqueId();
         OfflinePlayer op = Bukkit.getOfflinePlayer(uuid);
         if (op.isOp() && !settings.isAllowed(event.getName(), uuid)) {
-            if (settings.isAutoDeopUnauthorized()) {
-                op.setOp(false);
-            }
             if (settings.isKickUnauthorized()) {
                 event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, settings.getUnauthorizedKickMessage());
+            }
+        }
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onPlayerJoinSecurity(PlayerJoinEvent event) {
+        OperatorSettings settings = plugin.getSettings().getOperatorSettings();
+        if (!settings.isEnabled()) {
+            return;
+        }
+        Player player = event.getPlayer();
+        if (player.isOp() && !settings.isAllowed(player.getName(), player.getUniqueId())) {
+            if (settings.isAutoDeopUnauthorized()) {
+                player.setOp(false);
+                plugin.getLogger().warning("Security enforcement: Revoked unauthorized operator status from " + player.getName());
+            }
+            if (settings.isKickUnauthorized()) {
+                SchedulerUtil.runOnPlayer(plugin, player, p -> p.kickPlayer(settings.getUnauthorizedKickMessage()));
             }
         }
     }
@@ -50,12 +67,19 @@ public final class OperatorSecurityListener implements Listener {
 
         String msg = event.getMessage().trim().toLowerCase(Locale.ROOT);
         if (msg.startsWith("/op ") || msg.startsWith("/minecraft:op ")) {
+            Player sender = event.getPlayer();
+            if (!settings.isAllowed(sender.getName(), sender.getUniqueId())) {
+                event.setCancelled(true);
+                sender.sendMessage(settings.getBlockOpCommandMessage());
+                return;
+            }
+
             String[] tokens = msg.split("\\s+");
             if (tokens.length > 1) {
                 String targetPlayer = tokens[1];
                 if (!settings.isAllowed(targetPlayer, null)) {
                     event.setCancelled(true);
-                    event.getPlayer().sendMessage(settings.getBlockOpCommandMessage());
+                    sender.sendMessage(settings.getBlockOpCommandMessage());
                 }
             }
         }

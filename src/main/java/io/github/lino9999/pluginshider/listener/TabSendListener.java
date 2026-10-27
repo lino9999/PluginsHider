@@ -27,13 +27,18 @@ public final class TabSendListener implements Listener {
 
         AccessGroup group = plugin.getSettings().getGroupManager().resolvePlayerGroup(player);
         Collection<String> commands = event.getCommands();
+        boolean bypassPlugins = player.hasPermission("pluginshider.bypass.plugins");
+        boolean hideColon = plugin.getSettings().isHideColonCommands();
 
         commands.removeIf(cmd -> {
             String normalized = cmd.toLowerCase(Locale.ROOT);
-            if (plugin.getSettings().getPluginShieldSettings().isEnabled() && !player.hasPermission("pluginshider.bypass.plugins")) {
+            if (plugin.getSettings().getPluginShieldSettings().isEnabled() && !bypassPlugins) {
                 if (plugin.getSettings().getPluginShieldSettings().isBlocked("/" + normalized)) {
                     return true;
                 }
+            }
+            if (hideColon && normalized.contains(":") && !group.allowsRootTab(normalized)) {
+                return true;
             }
             return !group.allowsRootTab(normalized);
         });

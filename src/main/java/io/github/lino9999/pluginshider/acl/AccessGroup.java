@@ -203,7 +203,8 @@ public final class AccessGroup {
         }
         return blockedMessage
                 .replace("{player}", playerName != null ? playerName : "")
-                .replace("{command}", command != null ? command : "");
+                .replace("{command}", command != null ? command : "")
+                .replace("{cmd}", command != null ? command : "");
     }
 
     public String getName() {

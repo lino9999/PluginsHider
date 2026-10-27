@@ -16,8 +16,12 @@ public final class BrandSettings {
             return;
         }
         this.enabled = section.getBoolean("enabled", true);
-        this.rawBrand = section.getString("server-brand", "&8[&bPlugins&3Hider&8]");
-        this.brand = ColorUtil.colorize(this.rawBrand);
+        this.rawBrand = section.getString("server-brand", "&8[&bPlugins&3Hider&8] &7Protected");
+        String colored = ColorUtil.colorize(this.rawBrand);
+        if (!colored.isEmpty() && !colored.endsWith("\u00a7r")) {
+            colored += "\u00a7r";
+        }
+        this.brand = colored;
     }
 
     public boolean isEnabled() {

@@ -75,6 +75,7 @@ settings:
   locale: "en"
   debug: false
   case-insensitive-commands: true
+  hide-colon-commands: true
 
 brand-spoofing:
   enabled: true

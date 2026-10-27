@@ -106,6 +106,9 @@ public final class CommandRule {
             return true;
         }
         if (parts.length > 0) {
+            if (negated) {
+                return parts.length == 1 && parts[0].equalsIgnoreCase(clean);
+            }
             return parts[0].equalsIgnoreCase(clean);
         }
         if (isRegex && pattern != null) {

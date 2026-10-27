@@ -9,6 +9,7 @@ import java.util.logging.Logger;
 public final class PluginSettings {
     private final boolean debug;
     private final boolean caseInsensitiveCommands;
+    private final boolean hideColonCommands;
     private final String locale;
     private final BrandSettings brandSettings;
     private final ChannelSettings channelSettings;
@@ -20,6 +21,7 @@ public final class PluginSettings {
     public PluginSettings(FileConfiguration config, File dataFolder, Logger logger) {
         this.debug = config.getBoolean("settings.debug", false);
         this.caseInsensitiveCommands = config.getBoolean("settings.case-insensitive-commands", true);
+        this.hideColonCommands = config.getBoolean("settings.hide-colon-commands", true);
         this.locale = config.getString("settings.locale", "en");
 
         this.brandSettings = new BrandSettings(config.getConfigurationSection("brand-spoofing"));
@@ -38,6 +40,10 @@ public final class PluginSettings {
 
     public boolean isCaseInsensitiveCommands() {
         return caseInsensitiveCommands;
+    }
+
+    public boolean isHideColonCommands() {
+        return hideColonCommands;
     }
 
     public String getLocale() {
