@@ -10,6 +10,7 @@ import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public final class TabCompleteProcessor {
     private TabCompleteProcessor() {}
@@ -49,6 +50,7 @@ public final class TabCompleteProcessor {
         List<CommandMatch> filtered = new ArrayList<>();
         boolean bypassPlugins = player.hasPermission("pluginshider.bypass.plugins");
         boolean hideColon = settings.isHideColonCommands();
+        boolean isAdmin = player.hasPermission("pluginshider.admin");
 
         for (CommandMatch match : matches) {
             String text = match.getText();
@@ -62,6 +64,17 @@ public final class TabCompleteProcessor {
             }
 
             String candidate = prefix.isEmpty() ? clean : prefix + " " + clean;
+
+            String base = candidate;
+            int space = base.indexOf(' ');
+            if (space != -1) {
+                base = base.substring(0, space);
+            }
+
+            if (isAdmin && isPluginAdminCommand(base)) {
+                filtered.add(match);
+                continue;
+            }
 
             if (settings.getPluginShieldSettings().isEnabled() && !bypassPlugins) {
                 if (settings.getPluginShieldSettings().isBlocked("/" + candidate)) {
@@ -87,5 +100,16 @@ public final class TabCompleteProcessor {
 
         wrapper.setCommandMatches(filtered);
         event.markForReEncode(true);
+    }
+
+    private static boolean isPluginAdminCommand(String base) {
+        if (base == null) {
+            return false;
+        }
+        String clean = base.toLowerCase(Locale.ROOT);
+        if (clean.startsWith("pluginshider:")) {
+            clean = clean.substring(13);
+        }
+        return clean.equals("pluginshider") || clean.equals("phider") || clean.equals("ph") || clean.equals("plh");
     }
 }

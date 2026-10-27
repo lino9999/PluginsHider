@@ -122,3 +122,11 @@ groups:
       - "restart"
     tab-complete: []
     inherited-groups: []
+
+  op:
+    priority: 1000
+    mode: BLACKLIST
+    blocked-message: "&cAdministrative lock: Command restricted."
+    commands: []
+    tab-complete: []
+    inherited-groups: []

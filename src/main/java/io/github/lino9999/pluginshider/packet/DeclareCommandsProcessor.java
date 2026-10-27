@@ -14,6 +14,7 @@ import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -47,6 +48,7 @@ public final class DeclareCommandsProcessor {
 
         boolean bypassPlugins = player.hasPermission("pluginshider.bypass.plugins");
         boolean hideColon = settings.isHideColonCommands();
+        boolean isAdmin = player.hasPermission("pluginshider.admin");
 
         Set<Integer> allowedRootChildrenIndices = new HashSet<>();
         for (Integer childIndex : rootChildren) {
@@ -61,6 +63,11 @@ public final class DeclareCommandsProcessor {
             }
 
             String commandName = nameOpt.get();
+            if (isAdmin && isPluginAdminCommand(commandName)) {
+                allowedRootChildrenIndices.add(childIndex);
+                continue;
+            }
+
             if (settings.getPluginShieldSettings().isEnabled() && !bypassPlugins) {
                 if (settings.getPluginShieldSettings().isBlocked("/" + commandName)) {
                     continue;
@@ -141,5 +148,16 @@ public final class DeclareCommandsProcessor {
         wrapper.setRootIndex(0);
         wrapper.setNodes(newNodes);
         event.markForReEncode(true);
+    }
+
+    private static boolean isPluginAdminCommand(String base) {
+        if (base == null) {
+            return false;
+        }
+        String clean = base.toLowerCase(Locale.ROOT);
+        if (clean.startsWith("pluginshider:")) {
+            clean = clean.substring(13);
+        }
+        return clean.equals("pluginshider") || clean.equals("phider") || clean.equals("ph") || clean.equals("plh");
     }
 }

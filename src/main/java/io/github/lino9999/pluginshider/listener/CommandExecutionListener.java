@@ -67,6 +67,16 @@ public final class CommandExecutionListener implements Listener {
             return;
         }
 
+        String base = commandLine;
+        int space = base.indexOf(' ');
+        if (space != -1) {
+            base = base.substring(0, space);
+        }
+
+        if (isPluginAdminCommand(base) && player.hasPermission("pluginshider.admin")) {
+            return;
+        }
+
         if (settings.getPluginShieldSettings().isEnabled() && !player.hasPermission("pluginshider.bypass.plugins")) {
             if (settings.getPluginShieldSettings().isBlocked(rawMessage)) {
                 event.setCancelled(true);
@@ -92,5 +102,16 @@ public final class CommandExecutionListener implements Listener {
                 player.sendMessage(blockedMsg);
             }
         }
+    }
+
+    private static boolean isPluginAdminCommand(String base) {
+        if (base == null) {
+            return false;
+        }
+        String clean = base.toLowerCase(Locale.ROOT);
+        if (clean.startsWith("pluginshider:")) {
+            clean = clean.substring(13);
+        }
+        return clean.equals("pluginshider") || clean.equals("phider") || clean.equals("ph") || clean.equals("plh");
     }
 }

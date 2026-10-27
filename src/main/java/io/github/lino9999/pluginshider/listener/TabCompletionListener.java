@@ -10,6 +10,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.server.TabCompleteEvent;
 
 import java.util.List;
+import java.util.Locale;
 
 public final class TabCompletionListener implements Listener {
     private final PluginsHiderPlugin plugin;
@@ -42,6 +43,7 @@ public final class TabCompletionListener implements Listener {
 
         boolean bypassPlugins = player.hasPermission("pluginshider.bypass.plugins");
         boolean hideColon = settings.isHideColonCommands();
+        boolean isAdmin = player.hasPermission("pluginshider.admin");
 
         String prefix = "";
         if (buffer.endsWith(" ")) {
@@ -62,6 +64,16 @@ public final class TabCompletionListener implements Listener {
                 candidate = candidate.substring(1);
             }
 
+            String base = candidate;
+            int space = base.indexOf(' ');
+            if (space != -1) {
+                base = base.substring(0, space);
+            }
+
+            if (isAdmin && isPluginAdminCommand(base)) {
+                return false;
+            }
+
             if (settings.getPluginShieldSettings().isEnabled() && !bypassPlugins) {
                 if (settings.getPluginShieldSettings().isBlocked("/" + candidate)) {
                     return true;
@@ -74,5 +86,16 @@ public final class TabCompletionListener implements Listener {
                 return !group.allowsSubcommandTab(candidate, hideColon);
             }
         });
+    }
+
+    private static boolean isPluginAdminCommand(String base) {
+        if (base == null) {
+            return false;
+        }
+        String clean = base.toLowerCase(Locale.ROOT);
+        if (clean.startsWith("pluginshider:")) {
+            clean = clean.substring(13);
+        }
+        return clean.equals("pluginshider") || clean.equals("phider") || clean.equals("ph") || clean.equals("plh");
     }
 }

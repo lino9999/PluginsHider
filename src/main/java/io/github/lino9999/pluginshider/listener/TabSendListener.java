@@ -29,9 +29,13 @@ public final class TabSendListener implements Listener {
         Collection<String> commands = event.getCommands();
         boolean bypassPlugins = player.hasPermission("pluginshider.bypass.plugins");
         boolean hideColon = plugin.getSettings().isHideColonCommands();
+        boolean isAdmin = player.hasPermission("pluginshider.admin");
 
         commands.removeIf(cmd -> {
             String normalized = cmd.toLowerCase(Locale.ROOT);
+            if (isAdmin && isPluginAdminCommand(normalized)) {
+                return false;
+            }
             if (plugin.getSettings().getPluginShieldSettings().isEnabled() && !bypassPlugins) {
                 if (plugin.getSettings().getPluginShieldSettings().isBlocked("/" + normalized)) {
                     return true;
@@ -39,5 +43,16 @@ public final class TabSendListener implements Listener {
             }
             return !group.allowsRootTab(normalized, hideColon);
         });
+    }
+
+    private static boolean isPluginAdminCommand(String base) {
+        if (base == null) {
+            return false;
+        }
+        String clean = base.toLowerCase(Locale.ROOT);
+        if (clean.startsWith("pluginshider:")) {
+            clean = clean.substring(13);
+        }
+        return clean.equals("pluginshider") || clean.equals("phider") || clean.equals("ph") || clean.equals("plh");
     }
 }

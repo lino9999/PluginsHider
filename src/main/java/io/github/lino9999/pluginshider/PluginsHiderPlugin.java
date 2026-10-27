@@ -34,6 +34,10 @@ public final class PluginsHiderPlugin extends JavaPlugin {
         if (PacketEvents.getAPI() == null) {
             PacketEvents.setAPI(SpigotPacketEventsBuilder.build(this));
         }
+        PacketEvents.getAPI().getSettings()
+                .debug(false)
+                .bStats(false)
+                .checkForUpdates(false);
         if (!PacketEvents.getAPI().isLoaded()) {
             PacketEvents.getAPI().load();
         }

@@ -21,6 +21,12 @@ permissions:
   pluginshider.admin:
     description: Full administrative control over PluginsHider
     default: op
+    children:
+      pluginshider.bypass.commands: true
+      pluginshider.bypass.tab: true
+      pluginshider.bypass.plugins: true
+      pluginshider.bypass.channels: true
+      pluginshider.bypass.spam: true
   pluginshider.bypass.commands:
     description: Bypass command execution restrictions
     default: false

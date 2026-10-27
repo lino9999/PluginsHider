@@ -25,6 +25,9 @@ public final class CommandRateLimiter {
             while (!queue.isEmpty() && queue.peekFirst() < cutoff) {
                 queue.pollFirst();
             }
+            if (queue.size() > settings.getMaxCommands() * 2) {
+                queue.pollFirst();
+            }
             queue.addLast(now);
             return queue.size() > settings.getMaxCommands();
         }
