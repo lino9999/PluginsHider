@@ -80,6 +80,11 @@ public final class TabCompleteProcessor {
             }
         }
 
+        if (filtered.isEmpty()) {
+            event.setCancelled(true);
+            return;
+        }
+
         wrapper.setCommandMatches(filtered);
         event.markForReEncode(true);
     }

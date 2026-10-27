@@ -97,6 +97,13 @@ public final class DeclareCommandsProcessor {
                     }
                 }
             }
+
+            if ((node.getFlags() & Node.FLAG_REDIRECT) != 0) {
+                int redirectIdx = node.getRedirectNodeIndex();
+                if (redirectIdx >= 0 && redirectIdx < originalNodes.size() && !oldToNew.containsKey(redirectIdx)) {
+                    queue.add(redirectIdx);
+                }
+            }
         }
 
         for (int i = 0; i < newNodes.size(); i++) {

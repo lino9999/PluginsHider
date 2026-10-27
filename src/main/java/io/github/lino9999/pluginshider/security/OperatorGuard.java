@@ -12,18 +12,29 @@ import java.util.logging.Logger;
 public final class OperatorGuard {
     private final Plugin plugin;
     private final Logger logger;
+    private Runnable activeTask;
 
     public OperatorGuard(Plugin plugin, Logger logger) {
         this.plugin = plugin;
         this.logger = logger;
     }
 
-    public void start(OperatorSettings settings) {
+    public synchronized void start(OperatorSettings settings) {
+        stop();
         if (!settings.isEnabled()) {
             return;
         }
         long interval = settings.getSweepIntervalSeconds();
-        SchedulerUtil.runAsyncRepeating(plugin, () -> sweep(settings), interval, interval);
+        this.activeTask = SchedulerUtil.runAsyncRepeating(plugin, () -> sweep(settings), interval, interval);
+    }
+
+    public synchronized void stop() {
+        if (activeTask != null) {
+            try {
+                activeTask.run();
+            } catch (Throwable ignored) {}
+            activeTask = null;
+        }
     }
 
     public void sweep(OperatorSettings settings) {

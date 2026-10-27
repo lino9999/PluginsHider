@@ -16,27 +16,48 @@ import org.bukkit.entity.Player;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class PacketEventListener extends PacketListenerAbstract {
     private final PluginsHiderPlugin plugin;
-    private final Map<Integer, String> tabRequestMap = new ConcurrentHashMap<>();
+    private final Map<String, String> tabRequestMap = new ConcurrentHashMap<>();
+    private final Map<UUID, String> lastPlayerTabMap = new ConcurrentHashMap<>();
 
     public PacketEventListener(PluginsHiderPlugin plugin) {
         super(PacketListenerPriority.NORMAL);
         this.plugin = plugin;
     }
 
+    public void cleanPlayer(UUID uuid) {
+        if (uuid == null) {
+            return;
+        }
+        tabRequestMap.keySet().removeIf(k -> k.startsWith(uuid.toString()));
+        lastPlayerTabMap.remove(uuid);
+    }
+
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.TAB_COMPLETE) {
             WrapperPlayClientTabComplete wrapper = new WrapperPlayClientTabComplete(event);
-            Optional<Integer> idOpt = wrapper.getTransactionId();
-            if (idOpt.isPresent()) {
-                if (tabRequestMap.size() > 5000) {
-                    tabRequestMap.clear();
+            UUID uuid = null;
+            if (event.getPlayer() instanceof Player p) {
+                uuid = p.getUniqueId();
+            } else if (event.getUser() != null) {
+                uuid = event.getUser().getUUID();
+            }
+
+            if (uuid != null) {
+                String text = wrapper.getText();
+                lastPlayerTabMap.put(uuid, text);
+                Optional<Integer> idOpt = wrapper.getTransactionId();
+                if (idOpt.isPresent()) {
+                    if (tabRequestMap.size() > 5000) {
+                        tabRequestMap.clear();
+                    }
+                    tabRequestMap.put(uuid + ":" + idOpt.get(), text);
                 }
-                tabRequestMap.put(idOpt.get(), wrapper.getText());
             }
         }
     }
@@ -58,7 +79,7 @@ public final class PacketEventListener extends PacketListenerAbstract {
 
         if (event.getPacketType() == PacketType.Play.Server.PLUGIN_MESSAGE) {
             WrapperPlayServerPluginMessage wrapper = new WrapperPlayServerPluginMessage(event);
-            if (BrandPacketProcessor.handleBrandPacket(wrapper, settings.getBrandSettings())) {
+            if (BrandPacketProcessor.handleBrandPacket(wrapper, settings.getBrandSettings(), player)) {
                 event.markForReEncode(true);
                 return;
             }
@@ -67,7 +88,7 @@ public final class PacketEventListener extends PacketListenerAbstract {
             }
         } else if (event.getPacketType() == PacketType.Configuration.Server.PLUGIN_MESSAGE) {
             WrapperConfigServerPluginMessage wrapper = new WrapperConfigServerPluginMessage(event);
-            if (BrandPacketProcessor.handleBrandPacket(wrapper, settings.getBrandSettings())) {
+            if (BrandPacketProcessor.handleBrandPacket(wrapper, settings.getBrandSettings(), player)) {
                 event.markForReEncode(true);
                 return;
             }
@@ -79,9 +100,15 @@ public final class PacketEventListener extends PacketListenerAbstract {
         } else if (event.getPacketType() == PacketType.Play.Server.TAB_COMPLETE) {
             WrapperPlayServerTabComplete wrapper = new WrapperPlayServerTabComplete(event);
             String inputText = null;
-            Optional<Integer> idOpt = wrapper.getTransactionId();
-            if (idOpt.isPresent()) {
-                inputText = tabRequestMap.remove(idOpt.get());
+            UUID uuid = player != null ? player.getUniqueId() : (event.getUser() != null ? event.getUser().getUUID() : null);
+            if (uuid != null) {
+                Optional<Integer> idOpt = wrapper.getTransactionId();
+                if (idOpt.isPresent()) {
+                    inputText = tabRequestMap.remove(uuid + ":" + idOpt.get());
+                }
+                if (inputText == null) {
+                    inputText = lastPlayerTabMap.get(uuid);
+                }
             }
             TabCompleteProcessor.filterTabComplete(event, player, settings, inputText);
         }

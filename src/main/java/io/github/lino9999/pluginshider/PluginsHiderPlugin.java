@@ -79,6 +79,9 @@ public final class PluginsHiderPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (operatorGuard != null) {
+            operatorGuard.stop();
+        }
         if (packetEventsManager != null) {
             packetEventsManager.unregister();
         }
@@ -97,8 +100,13 @@ public final class PluginsHiderPlugin extends JavaPlugin {
         if (this.rateLimiter != null) {
             this.rateLimiter.clear();
         }
-        if (this.operatorGuard != null && settings.getOperatorSettings().isEnabled()) {
-            this.operatorGuard.sweep(settings.getOperatorSettings());
+        if (this.operatorGuard != null) {
+            if (settings.getOperatorSettings().isEnabled()) {
+                this.operatorGuard.start(settings.getOperatorSettings());
+                this.operatorGuard.sweep(settings.getOperatorSettings());
+            } else {
+                this.operatorGuard.stop();
+            }
         }
         getLogger().info("PluginsHider reloaded.");
     }

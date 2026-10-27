@@ -3,6 +3,7 @@ package io.github.lino9999.pluginshider.packet;
 import com.github.retrooper.packetevents.PacketEvents;
 import io.github.lino9999.pluginshider.PluginsHiderPlugin;
 
+import java.util.UUID;
 import java.util.logging.Logger;
 
 public final class PacketEventsManager {
@@ -34,6 +35,12 @@ public final class PacketEventsManager {
                 PacketEvents.getAPI().getEventManager().unregisterListener(listener);
             } catch (Throwable ignored) {}
             active = false;
+        }
+    }
+
+    public void cleanPlayer(UUID uuid) {
+        if (listener != null) {
+            listener.cleanPlayer(uuid);
         }
     }
 

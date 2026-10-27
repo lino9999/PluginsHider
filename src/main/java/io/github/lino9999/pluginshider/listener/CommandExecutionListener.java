@@ -63,6 +63,10 @@ public final class CommandExecutionListener implements Listener {
             commandLine = commandLine.substring(1).trim();
         }
 
+        if (commandLine.isEmpty()) {
+            return;
+        }
+
         if (settings.getPluginShieldSettings().isEnabled() && !player.hasPermission("pluginshider.bypass.plugins")) {
             if (settings.getPluginShieldSettings().isBlocked(rawMessage)) {
                 event.setCancelled(true);

@@ -3,6 +3,7 @@ package io.github.lino9999.pluginshider.packet;
 import com.github.retrooper.packetevents.wrapper.common.server.WrapperCommonServerPluginMessage;
 import io.github.lino9999.pluginshider.config.BrandSettings;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
@@ -11,6 +12,10 @@ public final class BrandPacketProcessor {
     private BrandPacketProcessor() {}
 
     public static boolean handleBrandPacket(WrapperCommonServerPluginMessage<?> wrapper, BrandSettings settings) {
+        return handleBrandPacket(wrapper, settings, null);
+    }
+
+    public static boolean handleBrandPacket(WrapperCommonServerPluginMessage<?> wrapper, BrandSettings settings, Player player) {
         if (!settings.isEnabled()) {
             return false;
         }
@@ -18,10 +23,13 @@ public final class BrandPacketProcessor {
         String channel = wrapper.getChannelName();
         if ("minecraft:brand".equalsIgnoreCase(channel) || "MC|Brand".equalsIgnoreCase(channel)) {
             String raw = settings.getBrand();
+            String playerName = (player != null && player.getName() != null) ? player.getName() : "";
             String formatted = raw
                     .replace("%version%", Bukkit.getVersion())
                     .replace("%online%", String.valueOf(Bukkit.getOnlinePlayers().size()))
-                    .replace("%max%", String.valueOf(Bukkit.getMaxPlayers()));
+                    .replace("%max%", String.valueOf(Bukkit.getMaxPlayers()))
+                    .replace("%player%", playerName)
+                    .replace("%name%", playerName);
             byte[] encoded = encodeString(formatted);
             wrapper.setData(encoded);
             return true;

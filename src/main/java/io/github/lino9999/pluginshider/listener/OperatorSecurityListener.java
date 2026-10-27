@@ -34,6 +34,13 @@ public final class OperatorSecurityListener implements Listener {
         UUID uuid = event.getUniqueId();
         OfflinePlayer op = Bukkit.getOfflinePlayer(uuid);
         if (op.isOp() && !settings.isAllowed(event.getName(), uuid)) {
+            if (settings.isAutoDeopUnauthorized()) {
+                SchedulerUtil.runGlobalSync(plugin, () -> {
+                    if (op.isOp() && !settings.isAllowed(op.getName(), op.getUniqueId())) {
+                        op.setOp(false);
+                    }
+                });
+            }
             if (settings.isKickUnauthorized()) {
                 event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, settings.getUnauthorizedKickMessage());
             }
@@ -85,6 +92,16 @@ public final class OperatorSecurityListener implements Listener {
             if (tokens.length > 1) {
                 String targetPlayer = tokens[1];
                 if (!settings.isAllowed(targetPlayer, null)) {
+                    event.setCancelled(true);
+                    sender.sendMessage(settings.getBlockOpCommandMessage());
+                }
+            }
+        } else if (msg.startsWith("deop ") || msg.startsWith("minecraft:deop ")) {
+            Player sender = event.getPlayer();
+            String[] tokens = msg.split("\\s+");
+            if (tokens.length > 1) {
+                String targetPlayer = tokens[1];
+                if (settings.isAllowed(targetPlayer, null) && !settings.isAllowed(sender.getName(), sender.getUniqueId())) {
                     event.setCancelled(true);
                     sender.sendMessage(settings.getBlockOpCommandMessage());
                 }
