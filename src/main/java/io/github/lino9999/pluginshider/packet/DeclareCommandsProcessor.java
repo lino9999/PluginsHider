@@ -67,11 +67,7 @@ public final class DeclareCommandsProcessor {
                 }
             }
 
-            if (hideColon && commandName.contains(":") && !group.allowsRootTab(commandName)) {
-                continue;
-            }
-
-            if (group.allowsRootTab(commandName)) {
+            if (group.allowsRootTab(commandName, hideColon)) {
                 allowedRootChildrenIndices.add(childIndex);
             }
         }

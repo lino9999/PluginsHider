@@ -14,7 +14,7 @@ import java.util.List;
 public final class TabCompleteProcessor {
     private TabCompleteProcessor() {}
 
-    public static void filterTabComplete(PacketSendEvent event, Player player, PluginSettings settings) {
+    public static void filterTabComplete(PacketSendEvent event, Player player, PluginSettings settings, String inputText) {
         if (player == null && event.getUser() != null && event.getUser().getUUID() != null) {
             player = Bukkit.getPlayer(event.getUser().getUUID());
         }
@@ -30,6 +30,22 @@ public final class TabCompleteProcessor {
             return;
         }
 
+        String prefix = "";
+        if (inputText != null && !inputText.isBlank()) {
+            String cleanInput = inputText.trim();
+            while (cleanInput.startsWith("/")) {
+                cleanInput = cleanInput.substring(1).trim();
+            }
+            if (inputText.endsWith(" ")) {
+                prefix = cleanInput;
+            } else {
+                int lastSpace = cleanInput.lastIndexOf(' ');
+                if (lastSpace != -1) {
+                    prefix = cleanInput.substring(0, lastSpace).trim();
+                }
+            }
+        }
+
         List<CommandMatch> filtered = new ArrayList<>();
         boolean bypassPlugins = player.hasPermission("pluginshider.bypass.plugins");
         boolean hideColon = settings.isHideColonCommands();
@@ -41,22 +57,26 @@ public final class TabCompleteProcessor {
             }
 
             String clean = text.trim();
-            if (clean.startsWith("/")) {
+            while (clean.startsWith("/")) {
                 clean = clean.substring(1);
             }
 
+            String candidate = prefix.isEmpty() ? clean : prefix + " " + clean;
+
             if (settings.getPluginShieldSettings().isEnabled() && !bypassPlugins) {
-                if (settings.getPluginShieldSettings().isBlocked("/" + clean)) {
+                if (settings.getPluginShieldSettings().isBlocked("/" + candidate)) {
                     continue;
                 }
             }
 
-            if (hideColon && clean.contains(":") && !group.allowsRootTab(clean)) {
-                continue;
-            }
-
-            if (group.allowsRootTab(clean) || group.allowsSubcommandTab(clean)) {
-                filtered.add(match);
+            if (prefix.isEmpty()) {
+                if (group.allowsRootTab(candidate, hideColon)) {
+                    filtered.add(match);
+                }
+            } else {
+                if (group.allowsSubcommandTab(candidate, hideColon)) {
+                    filtered.add(match);
+                }
             }
         }
 

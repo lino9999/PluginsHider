@@ -37,10 +37,7 @@ public final class TabSendListener implements Listener {
                     return true;
                 }
             }
-            if (hideColon && normalized.contains(":") && !group.allowsRootTab(normalized)) {
-                return true;
-            }
-            return !group.allowsRootTab(normalized);
+            return !group.allowsRootTab(normalized, hideColon);
         });
     }
 }

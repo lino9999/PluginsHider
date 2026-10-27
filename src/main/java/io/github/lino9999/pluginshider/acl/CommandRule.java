@@ -81,7 +81,7 @@ public final class CommandRule {
         }
 
         for (int i = 0; i < parts.length; i++) {
-            if (!parts[i].equals(testParts[i])) {
+            if (!parts[i].equals("*") && !parts[i].equals(testParts[i])) {
                 return false;
             }
         }

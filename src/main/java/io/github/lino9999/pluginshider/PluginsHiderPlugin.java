@@ -7,6 +7,7 @@ import io.github.lino9999.pluginshider.integration.LuckPermsIntegration;
 import io.github.lino9999.pluginshider.listener.CommandExecutionListener;
 import io.github.lino9999.pluginshider.listener.OperatorSecurityListener;
 import io.github.lino9999.pluginshider.listener.PlayerConnectionListener;
+import io.github.lino9999.pluginshider.listener.TabCompletionListener;
 import io.github.lino9999.pluginshider.listener.TabSendListener;
 import io.github.lino9999.pluginshider.packet.PacketEventsManager;
 import io.github.lino9999.pluginshider.security.CommandRateLimiter;
@@ -53,6 +54,7 @@ public final class PluginsHiderPlugin extends JavaPlugin {
         pm.registerEvents(new CommandExecutionListener(this), this);
         pm.registerEvents(new PlayerConnectionListener(this), this);
         pm.registerEvents(new TabSendListener(this), this);
+        pm.registerEvents(new TabCompletionListener(this), this);
         pm.registerEvents(new OperatorSecurityListener(this), this);
 
         PluginsHiderCommand commandHandler = new PluginsHiderCommand(this);

@@ -30,10 +30,10 @@ public final class PluginShieldSettings {
             for (String cmd : list) {
                 if (cmd != null && !cmd.isBlank()) {
                     String clean = cmd.trim().toLowerCase(Locale.ROOT);
-                    if (!clean.startsWith("/")) {
-                        clean = "/" + clean;
+                    while (clean.startsWith("/")) {
+                        clean = clean.substring(1).trim();
                     }
-                    set.add(clean);
+                    set.add("/" + clean);
                 }
             }
         }
@@ -69,9 +69,10 @@ public final class PluginShieldSettings {
             return false;
         }
         String clean = command.toLowerCase(Locale.ROOT).trim();
-        if (!clean.startsWith("/")) {
-            clean = "/" + clean;
+        while (clean.startsWith("/")) {
+            clean = clean.substring(1).trim();
         }
+        clean = "/" + clean;
         int spaceIdx = clean.indexOf(' ');
         if (spaceIdx != -1) {
             clean = clean.substring(0, spaceIdx);

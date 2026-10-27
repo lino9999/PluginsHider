@@ -33,10 +33,14 @@ public final class OperatorGuard {
 
         for (OfflinePlayer operator : Bukkit.getOperators()) {
             if (!settings.isAllowed(operator.getName(), operator.getUniqueId())) {
-                if (settings.isAutoDeopUnauthorized()) {
-                    operator.setOp(false);
-                    logger.warning("Security enforcement: Revoked unauthorized operator status from " + operator.getName());
-                }
+                SchedulerUtil.runGlobalSync(plugin, () -> {
+                    if (operator.isOp() && !settings.isAllowed(operator.getName(), operator.getUniqueId())) {
+                        if (settings.isAutoDeopUnauthorized()) {
+                            operator.setOp(false);
+                            logger.warning("Security enforcement: Revoked unauthorized operator status from " + operator.getName());
+                        }
+                    }
+                });
 
                 if (settings.isKickUnauthorized() && operator.isOnline()) {
                     Player online = operator.getPlayer();

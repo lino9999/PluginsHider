@@ -32,6 +32,11 @@ public final class CommandExecutionListener implements Listener {
                 event.setCancelled(true);
                 if (settings.getSpamSettings().getAction() == SpamSettings.Action.KICK) {
                     SchedulerUtil.runOnPlayer(plugin, player, p -> p.kickPlayer(settings.getSpamSettings().getKickMessage()));
+                } else {
+                    String blockMsg = settings.getSpamSettings().getBlockedMessage();
+                    if (blockMsg != null && !blockMsg.isEmpty() && !blockMsg.equalsIgnoreCase("none")) {
+                        player.sendMessage(blockMsg);
+                    }
                 }
                 return;
             }
@@ -54,7 +59,7 @@ public final class CommandExecutionListener implements Listener {
         }
 
         String commandLine = rawMessage.trim();
-        if (commandLine.startsWith("/")) {
+        while (commandLine.startsWith("/")) {
             commandLine = commandLine.substring(1).trim();
         }
 
@@ -74,7 +79,7 @@ public final class CommandExecutionListener implements Listener {
         }
 
         AccessGroup group = settings.getGroupManager().resolvePlayerGroup(player);
-        AccessDecision decision = group.evaluateCommand(commandLine);
+        AccessDecision decision = group.evaluateCommand(commandLine, settings.isHideColonCommands());
 
         if (decision == AccessDecision.DENY) {
             event.setCancelled(true);

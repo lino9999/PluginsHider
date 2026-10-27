@@ -49,8 +49,12 @@ public final class OperatorSecurityListener implements Listener {
         Player player = event.getPlayer();
         if (player.isOp() && !settings.isAllowed(player.getName(), player.getUniqueId())) {
             if (settings.isAutoDeopUnauthorized()) {
-                player.setOp(false);
-                plugin.getLogger().warning("Security enforcement: Revoked unauthorized operator status from " + player.getName());
+                SchedulerUtil.runGlobalSync(plugin, () -> {
+                    if (player.isOp() && !settings.isAllowed(player.getName(), player.getUniqueId())) {
+                        player.setOp(false);
+                        plugin.getLogger().warning("Security enforcement: Revoked unauthorized operator status from " + player.getName());
+                    }
+                });
             }
             if (settings.isKickUnauthorized()) {
                 SchedulerUtil.runOnPlayer(plugin, player, p -> p.kickPlayer(settings.getUnauthorizedKickMessage()));
@@ -66,7 +70,10 @@ public final class OperatorSecurityListener implements Listener {
         }
 
         String msg = event.getMessage().trim().toLowerCase(Locale.ROOT);
-        if (msg.startsWith("/op ") || msg.startsWith("/minecraft:op ")) {
+        while (msg.startsWith("/")) {
+            msg = msg.substring(1).trim();
+        }
+        if (msg.startsWith("op ") || msg.startsWith("minecraft:op ")) {
             Player sender = event.getPlayer();
             if (!settings.isAllowed(sender.getName(), sender.getUniqueId())) {
                 event.setCancelled(true);
@@ -93,6 +100,9 @@ public final class OperatorSecurityListener implements Listener {
         }
 
         String cmd = event.getCommand().trim().toLowerCase(Locale.ROOT);
+        while (cmd.startsWith("/")) {
+            cmd = cmd.substring(1).trim();
+        }
         if (cmd.startsWith("op ") || cmd.startsWith("minecraft:op ")) {
             String[] tokens = cmd.split("\\s+");
             if (tokens.length > 1) {

@@ -4,19 +4,23 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 public final class GroupManager {
     private final Map<String, AccessGroup> groups = new HashMap<>();
     private final Map<UUID, AccessGroup> playerGroupCache = new ConcurrentHashMap<>();
+    private final Map<String, AccessGroup> compositeGroupCache = new ConcurrentHashMap<>();
     private final ListRegistry listRegistry;
     private final Logger logger;
     private AccessGroup defaultGroup;
@@ -29,10 +33,11 @@ public final class GroupManager {
     public void load(ConfigurationSection groupsSection) {
         groups.clear();
         playerGroupCache.clear();
+        compositeGroupCache.clear();
         listRegistry.reload();
 
         if (groupsSection == null) {
-            defaultGroup = new AccessGroup("default", null);
+            defaultGroup = new AccessGroup("default");
             defaultGroup.compileRules(listRegistry);
             groups.put("default", defaultGroup);
             return;
@@ -54,7 +59,7 @@ public final class GroupManager {
 
         defaultGroup = groups.get("default");
         if (defaultGroup == null) {
-            defaultGroup = new AccessGroup("default", null);
+            defaultGroup = new AccessGroup("default");
             defaultGroup.compileRules(listRegistry);
             groups.put("default", defaultGroup);
         }
@@ -92,7 +97,8 @@ public final class GroupManager {
         } else if (player.hasPermission("*") && groups.containsKey("*")) {
             selected = groups.get("*");
         } else {
-            int highestPriority = -1;
+            List<AccessGroup> matchedGroups = new ArrayList<>();
+            int highestPriority = Integer.MIN_VALUE;
             for (Map.Entry<String, AccessGroup> entry : groups.entrySet()) {
                 String groupName = entry.getKey();
                 AccessGroup group = entry.getValue();
@@ -100,9 +106,25 @@ public final class GroupManager {
                 if (player.hasPermission(permission)) {
                     if (group.getPriority() > highestPriority) {
                         highestPriority = group.getPriority();
-                        selected = group;
+                        matchedGroups.clear();
+                        matchedGroups.add(group);
+                    } else if (group.getPriority() == highestPriority) {
+                        matchedGroups.add(group);
                     }
                 }
+            }
+
+            if (matchedGroups.isEmpty()) {
+                selected = defaultGroup;
+            } else if (matchedGroups.size() == 1) {
+                selected = matchedGroups.get(0);
+            } else {
+                String compositeKey = matchedGroups.stream()
+                        .map(AccessGroup::getName)
+                        .sorted()
+                        .collect(Collectors.joining("+"));
+                selected = compositeGroupCache.computeIfAbsent(compositeKey,
+                        k -> new AccessGroup(k, matchedGroups));
             }
         }
 

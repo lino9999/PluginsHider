@@ -47,6 +47,7 @@ rate-limiting:
   max-commands-per-window: 30
   action: KICK
   kick-message: "&cExcessive command activity detected. Connection terminated."
+  blocked-message: "&cYou are sending commands too quickly. Please slow down."
 
 operator-security:
   enabled: false

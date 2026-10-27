@@ -2,6 +2,7 @@ package io.github.lino9999.pluginshider.packet;
 
 import com.github.retrooper.packetevents.wrapper.common.server.WrapperCommonServerPluginMessage;
 import io.github.lino9999.pluginshider.config.BrandSettings;
+import org.bukkit.Bukkit;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
@@ -16,7 +17,12 @@ public final class BrandPacketProcessor {
 
         String channel = wrapper.getChannelName();
         if ("minecraft:brand".equalsIgnoreCase(channel) || "MC|Brand".equalsIgnoreCase(channel)) {
-            byte[] encoded = encodeString(settings.getBrand());
+            String raw = settings.getBrand();
+            String formatted = raw
+                    .replace("%version%", Bukkit.getVersion())
+                    .replace("%online%", String.valueOf(Bukkit.getOnlinePlayers().size()))
+                    .replace("%max%", String.valueOf(Bukkit.getMaxPlayers()));
+            byte[] encoded = encodeString(formatted);
             wrapper.setData(encoded);
             return true;
         }

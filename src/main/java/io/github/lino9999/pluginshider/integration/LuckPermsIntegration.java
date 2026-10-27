@@ -6,6 +6,7 @@ import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.event.EventBus;
 import net.luckperms.api.event.node.NodeAddEvent;
+import net.luckperms.api.event.node.NodeClearEvent;
 import net.luckperms.api.event.node.NodeRemoveEvent;
 import net.luckperms.api.event.sync.PostSyncEvent;
 import net.luckperms.api.model.PermissionHolder;
@@ -37,21 +38,28 @@ public final class LuckPermsIntegration {
             eventBus.subscribe(plugin, NodeAddEvent.class, event -> {
                 if (event.isUser()) {
                     handleHolder(event.getTarget());
+                } else if (event.isGroup()) {
+                    refreshAllPlayers();
                 }
             });
 
             eventBus.subscribe(plugin, NodeRemoveEvent.class, event -> {
                 if (event.isUser()) {
                     handleHolder(event.getTarget());
+                } else if (event.isGroup()) {
+                    refreshAllPlayers();
                 }
             });
 
-            eventBus.subscribe(plugin, PostSyncEvent.class, event -> {
-                plugin.getSettings().getGroupManager().invalidateAll();
-                for (Player player : Bukkit.getOnlinePlayers()) {
-                    refreshPlayer(player);
+            eventBus.subscribe(plugin, NodeClearEvent.class, event -> {
+                if (event.isUser()) {
+                    handleHolder(event.getTarget());
+                } else if (event.isGroup()) {
+                    refreshAllPlayers();
                 }
             });
+
+            eventBus.subscribe(plugin, PostSyncEvent.class, event -> refreshAllPlayers());
 
             hooked = true;
             logger.info("LuckPerms reactive permission hook active.");
@@ -69,6 +77,13 @@ public final class LuckPermsIntegration {
                 refreshPlayer(player);
             }
         } catch (IllegalArgumentException ignored) {}
+    }
+
+    private void refreshAllPlayers() {
+        plugin.getSettings().getGroupManager().invalidateAll();
+        for (Player online : Bukkit.getOnlinePlayers()) {
+            refreshPlayer(online);
+        }
     }
 
     private void refreshPlayer(Player player) {

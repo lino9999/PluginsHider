@@ -24,6 +24,16 @@ public final class AccessGroup {
     private final List<CommandRule> commandRules = new ArrayList<>();
     private final List<CommandRule> tabRules = new ArrayList<>();
 
+    public AccessGroup(String name) {
+        this.name = name.toLowerCase(Locale.ROOT);
+        this.priority = 0;
+        this.mode = Mode.WHITELIST;
+        this.blockedMessage = ColorUtil.colorize("&cUnknown command. Type \"/help\" for help.");
+        this.rawCommands = Collections.emptyList();
+        this.rawTabComplete = Collections.emptyList();
+        this.inheritedGroupNames = Collections.emptyList();
+    }
+
     public AccessGroup(String name, ConfigurationSection section) {
         this.name = name.toLowerCase(Locale.ROOT);
         if (section == null) {
@@ -48,6 +58,33 @@ public final class AccessGroup {
         this.rawCommands = section.getStringList("commands");
         this.rawTabComplete = section.getStringList("tab-complete");
         this.inheritedGroupNames = section.getStringList("inherited-groups");
+    }
+
+    public AccessGroup(String name, List<AccessGroup> sources) {
+        this.name = name.toLowerCase(Locale.ROOT);
+        int maxPriority = 0;
+        Mode resolvedMode = Mode.WHITELIST;
+        String bMsg = null;
+        for (AccessGroup src : sources) {
+            if (src.getPriority() > maxPriority) {
+                maxPriority = src.getPriority();
+            }
+            if (src.getMode() == Mode.BLACKLIST) {
+                resolvedMode = Mode.BLACKLIST;
+            }
+            if (bMsg == null) {
+                bMsg = src.getBlockedMessage();
+            }
+        }
+        this.priority = maxPriority;
+        this.mode = resolvedMode;
+        this.blockedMessage = bMsg;
+        this.rawCommands = Collections.emptyList();
+        this.rawTabComplete = Collections.emptyList();
+        this.inheritedGroupNames = Collections.emptyList();
+        for (AccessGroup src : sources) {
+            mergeInheritedRules(src);
+        }
     }
 
     public void compileRules(ListRegistry listRegistry) {
@@ -106,6 +143,12 @@ public final class AccessGroup {
                 for (String fromEntry : fromList) {
                     result.add(negated ? "!" + fromEntry : fromEntry);
                 }
+            } else if (core.toLowerCase(Locale.ROOT).startsWith("plugin:")) {
+                String pluginName = core.substring(7).trim();
+                List<String> fromPlugin = listRegistry.getPluginCommands(pluginName);
+                for (String fromEntry : fromPlugin) {
+                    result.add(negated ? "!" + fromEntry : fromEntry);
+                }
             } else {
                 result.add(trimmed);
             }
@@ -114,7 +157,21 @@ public final class AccessGroup {
     }
 
     public AccessDecision evaluateCommand(String commandLine) {
+        return evaluateCommand(commandLine, false);
+    }
+
+    public AccessDecision evaluateCommand(String commandLine, boolean hideColonCommands) {
         if (commandLine == null) {
+            return AccessDecision.DENY;
+        }
+
+        String base = commandLine.trim();
+        int space = base.indexOf(' ');
+        if (space != -1) {
+            base = base.substring(0, space);
+        }
+
+        if (hideColonCommands && base.contains(":") && !hasExplicitCommandRule(commandLine)) {
             return AccessDecision.DENY;
         }
 
@@ -142,7 +199,15 @@ public final class AccessGroup {
     }
 
     public boolean allowsRootTab(String rootCommand) {
+        return allowsRootTab(rootCommand, false);
+    }
+
+    public boolean allowsRootTab(String rootCommand, boolean hideColonCommands) {
         if (rootCommand == null) {
+            return false;
+        }
+
+        if (hideColonCommands && rootCommand.contains(":") && !hasExplicitTabRule(rootCommand)) {
             return false;
         }
 
@@ -170,7 +235,15 @@ public final class AccessGroup {
     }
 
     public boolean allowsSubcommandTab(String fullCommandPrefix) {
+        return allowsSubcommandTab(fullCommandPrefix, false);
+    }
+
+    public boolean allowsSubcommandTab(String fullCommandPrefix, boolean hideColonCommands) {
         if (fullCommandPrefix == null) {
+            return false;
+        }
+
+        if (hideColonCommands && fullCommandPrefix.contains(":") && !hasExplicitTabRule(fullCommandPrefix)) {
             return false;
         }
 
@@ -195,6 +268,30 @@ public final class AccessGroup {
             }
             return true;
         }
+    }
+
+    public boolean hasExplicitTabRule(String command) {
+        if (command == null) {
+            return false;
+        }
+        for (CommandRule rule : tabRules) {
+            if (!rule.isNegated() && rule.matchesRoot(command)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean hasExplicitCommandRule(String command) {
+        if (command == null) {
+            return false;
+        }
+        for (CommandRule rule : commandRules) {
+            if (!rule.isNegated() && rule.matches(command)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public String formatBlockedMessage(String playerName, String command) {

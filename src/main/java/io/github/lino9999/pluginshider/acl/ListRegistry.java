@@ -1,6 +1,8 @@
 package io.github.lino9999.pluginshider.acl;
 
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.plugin.Plugin;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -38,13 +40,26 @@ public final class ListRegistry {
         Map<String, List<String>> rawMap = new HashMap<>();
         for (File file : files) {
             YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
-            for (String key : yaml.getKeys(false)) {
+            String fileName = file.getName();
+            String baseName = fileName.substring(0, fileName.lastIndexOf('.')).toLowerCase(Locale.ROOT);
+
+            Set<String> keys = yaml.getKeys(false);
+            for (String key : keys) {
                 String normalized = key.toLowerCase(Locale.ROOT);
                 List<String> entries = yaml.getStringList(key);
                 if (!rawMap.containsKey(normalized)) {
                     rawMap.put(normalized, entries);
                 } else {
-                    logger.warning("Duplicate command list key found: " + key + " in " + file.getName());
+                    logger.warning("Duplicate command list key found: " + key + " in " + fileName);
+                }
+            }
+
+            if (!rawMap.containsKey(baseName)) {
+                if (keys.size() == 1) {
+                    String singleKey = keys.iterator().next();
+                    rawMap.put(baseName, yaml.getStringList(singleKey));
+                } else if (yaml.isList("commands")) {
+                    rawMap.put(baseName, yaml.getStringList("commands"));
                 }
             }
         }
@@ -81,11 +96,56 @@ public final class ListRegistry {
                 } else {
                     logger.warning("Unresolved list reference '" + target + "' in list: " + key);
                 }
+            } else if (core.toLowerCase(Locale.ROOT).startsWith("plugin:")) {
+                String target = core.substring(7).trim();
+                List<String> pluginCmds = getPluginCommands(target);
+                for (String pCmd : pluginCmds) {
+                    result.add(negated ? "!" + pCmd : pCmd);
+                }
             } else {
                 result.add(trimmed);
             }
         }
         return result;
+    }
+
+    public List<String> getPluginCommands(String pluginName) {
+        if (pluginName == null || pluginName.isBlank()) {
+            return Collections.emptyList();
+        }
+        Plugin targetPlugin = Bukkit.getPluginManager().getPlugin(pluginName);
+        if (targetPlugin == null) {
+            for (Plugin p : Bukkit.getPluginManager().getPlugins()) {
+                if (p.getName().equalsIgnoreCase(pluginName)) {
+                    targetPlugin = p;
+                    break;
+                }
+            }
+        }
+        if (targetPlugin == null) {
+            logger.warning("Could not find plugin for 'plugin:" + pluginName + "'");
+            return Collections.emptyList();
+        }
+
+        List<String> commands = new ArrayList<>();
+        Map<String, Map<String, Object>> map = targetPlugin.getDescription().getCommands();
+        if (map != null) {
+            for (Map.Entry<String, Map<String, Object>> entry : map.entrySet()) {
+                String cmdName = entry.getKey();
+                commands.add(cmdName);
+                Object aliasesObj = entry.getValue() != null ? entry.getValue().get("aliases") : null;
+                if (aliasesObj instanceof List<?> list) {
+                    for (Object alias : list) {
+                        if (alias != null) {
+                            commands.add(alias.toString());
+                        }
+                    }
+                } else if (aliasesObj instanceof String s) {
+                    commands.add(s);
+                }
+            }
+        }
+        return commands;
     }
 
     public List<String> getList(String name) {
